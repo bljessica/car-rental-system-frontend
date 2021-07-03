@@ -117,6 +117,12 @@
         type="textarea"
         placeholder="请输入内容"
       />
+      <n-input-number
+        style="margin-top: 10px;"
+        :min="0"
+        :max="10"
+        v-if="modalType === 'comment'"
+        v-model:value="commentPoint"></n-input-number>
     </n-modal>
   </n-layout>
 </template>
@@ -143,6 +149,7 @@ export default {
     ArrowBack
   },
   setup () {
+    const commentPoint = ref(10)
     const accidentData = ref([])
     const accidentPagination = ref({
       pageSize: 10
@@ -270,9 +277,11 @@ export default {
     }
     const cancelCallback = () => {
       modalInputValue.value = ''
+      commentPoint.value = 10
       resetCarInfoFormValue()
     }
     return {
+      commentPoint,
       accidentColumns,
       accidentData,
       accidentPagination,
