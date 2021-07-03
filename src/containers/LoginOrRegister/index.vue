@@ -201,7 +201,7 @@ export default {
 }
 .login-or-register__form-wrapper {
   background: #fff;
-  width: 50%;
+  width: 400px;
   position: absolute;
   top: 50%;
   left: 50%;
