@@ -11,14 +11,19 @@
           <n-form
             :rules="loginFormRules"
             :label-width="80"
+            label-placement="left"
             :model="loginFormValue"
             ref="loginFormRef"
             style="padding: 20px;">
-            <n-form-item label="用户名" label-placement="left" path="username">
+            <n-form-item label="用户名" path="username">
               <n-input v-model:value="loginFormValue.username" placeholder="请输入用户名" />
             </n-form-item>
-            <n-form-item label-placement="left" label="密码" path="password">
-              <n-input v-model:value="loginFormValue.password" placeholder="请输入密码" />
+            <n-form-item label="密码" path="password">
+              <n-input
+                type="password"
+                show-password-toggle
+                v-model:value="loginFormValue.password"
+                placeholder="请输入密码" />
             </n-form-item>
             <n-button @click="handleLoginFormValidateClick" type="primary" style="width: 100%;">确定</n-button>
           </n-form>
@@ -28,34 +33,39 @@
             :label-width="80"
             :rules="registerFormRules"
             :model="registerFormValue"
+            label-placement="left"
             ref="registerFormRef"
             style="padding: 20px;">
-            <n-form-item label="用户名" label-placement="left" path="username">
+            <n-form-item label="用户名" path="username">
               <n-input v-model:value="registerFormValue.username" placeholder="请输入用户名" />
             </n-form-item>
             <n-form-item
-              label-placement="left"
               label="密码"
               path="password">
-              <n-input v-model:value="registerFormValue.password" placeholder="请输入密码" />
+              <n-input
+                type="password"
+                show-password-toggle
+                v-model:value="registerFormValue.password"
+                placeholder="请输入密码" />
             </n-form-item>
             <n-form-item
-              label-placement="left"
               label="确认密码"
               path="passwordConfirm">
-              <n-input v-model:value="registerFormValue.passwordConfirm" placeholder="请确认密码" />
+              <n-input
+                type="password"
+                show-password-toggle
+                v-model:value="registerFormValue.passwordConfirm"
+                placeholder="请确认密码" />
             </n-form-item>
-            <n-form-item label-placement="left" label="真实姓名" path="realName">
+            <n-form-item label="真实姓名" path="realName">
               <n-input v-model:value="registerFormValue.realName" placeholder="请输入真实姓名" />
             </n-form-item>
             <n-form-item
-              label-placement="left"
               label="联系电话"
               path="phone">
               <n-input v-model:value="registerFormValue.phone" placeholder="请输入联系电话" />
             </n-form-item>
             <n-form-item
-              label-placement="left"
               label="邮箱"
               path="email">
               <n-input v-model:value="registerFormValue.email" placeholder="请输入邮箱" />
@@ -77,7 +87,7 @@ import { useMessage } from 'naive-ui'
 export default {
   setup () {
     const router = useRouter()
-    const message = useMessage()
+    const $message = useMessage()
     const loginFormRef = ref(null)
     const registerFormRef = ref(null)
     const loginFormValue = ref({
@@ -172,23 +182,23 @@ export default {
       handleLoginFormValidateClick (e) {
         loginFormRef.value.validate((errors) => {
           if (!errors) {
-            message.success('Valid')
+            $message.success('登陆成功，1秒后将跳转到首页')
             setTimeout(() => {
               router.push({ name: 'dashBoard' })
             }, 1000);
           } else {
             console.log(errors)
-            message.error('校验失败，请重新输入')
+            $message.error('校验失败，请重新输入')
           }
         })
       },
       handleRegisterValidateClick (e) {
         registerFormRef.value.validate((errors) => {
           if (!errors) {
-            message.success('Valid')
+            $message.success('注册成功')
           } else {
             console.log(errors)
-            message.error('校验失败，请重新输入')
+            $message.error('校验失败，请重新输入')
           }
         })
       }

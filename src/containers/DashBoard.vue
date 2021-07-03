@@ -3,7 +3,7 @@
     <n-layout class="dashboard__header">
       <h1 style="width: 200px;margin: 0;">汽车租赁系统</h1>
       <div class="dashboard__header__userinfo">
-        <span>{{username}}</span>
+        <span style="display: inline-block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: 140px;">欢迎你，{{username}}！</span>
         <span @click="$router.push({name: 'loginOrRegister'})" style="cursor: pointer;">登出</span>
       </div>
     </n-layout>
@@ -15,7 +15,7 @@
         <n-divider vertical ></n-divider>
         <span @click="currentTab = 'rent'" :class="{'is-active': currentTab === 'rent'}">我租的车辆</span>
       </div>
-      <n-layout :native-scrollbar="false" style="height: 500px;">
+      <n-layout :native-scrollbar="false" style="height: calc(100vh - 250px);">
         <div class="dashboard__content__cars-wrapper">
           <CarCard v-for="i in carNum" :key="i" />
         </div>
@@ -66,7 +66,7 @@ export default {
   }
 }
 .dashboard__header__userinfo {
-  width: 140px;
+  width: 180px;
   display: flex;
   align-items: center;
   justify-content: space-between;
