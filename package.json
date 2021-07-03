@@ -10,6 +10,7 @@
     "vue-router": "^4.0.10"
   },
   "devDependencies": {
+    "@vicons/ionicons5": "^0.10.0",
     "@vitejs/plugin-vue": "^1.2.4",
     "@vue/compiler-sfc": "^3.0.4",
     "eslint": "^7.29.0",
@@ -22,6 +23,7 @@
     "eslint-plugin-vue": "^7.12.1",
     "naive-ui": "^2.15.2",
     "prettier": "^2.3.2",
+    "sass": "^1.35.1",
     "vite": "^1.0.0-rc.13",
     "vue-eslint-parser": "^7.7.2"
   }

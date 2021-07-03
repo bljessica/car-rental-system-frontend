@@ -1,6 +1,9 @@
 <template>
   <n-message-provider>
-    <LoginOrRegister />
+    <n-dialog-provider>
+      <LoginOrRegister v-if="$route.name === 'loginOrRegister'" />
+      <router-view v-else></router-view>
+    </n-dialog-provider>
   </n-message-provider>
 </template>
 

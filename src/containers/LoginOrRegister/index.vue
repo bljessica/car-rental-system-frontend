@@ -71,10 +71,12 @@
 
 <script>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 
 export default {
   setup () {
+    const router = useRouter()
     const message = useMessage()
     const loginFormRef = ref(null)
     const registerFormRef = ref(null)
@@ -91,6 +93,7 @@ export default {
       email: ''
     })
     return {
+      router,
       loginFormRef,
       registerFormRef,
       loginFormValue,
@@ -170,6 +173,9 @@ export default {
         loginFormRef.value.validate((errors) => {
           if (!errors) {
             message.success('Valid')
+            setTimeout(() => {
+              router.push({ name: 'dashBoard' })
+            }, 1000);
           } else {
             console.log(errors)
             message.error('校验失败，请重新输入')
