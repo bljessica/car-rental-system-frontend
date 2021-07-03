@@ -58,6 +58,7 @@
         :carPrice="selectedCar.carPrice"
         :spotAddress="selectedCar.spotAddress"
         :carStatus="selectedCar.carStatus"
+        @openModal="openModal"
       />
       <h3>
         事故记录
