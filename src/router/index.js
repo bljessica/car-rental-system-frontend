@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import LoginOrRegister from '/@/containers/loginOrRegister/index.vue'
-import DashBoard from '/@/containers/DashBoard.vue'
+import DashBoard from '/@/containers/DashBoard/index.vue'
 
 const routes = [
   {
