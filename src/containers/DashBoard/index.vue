@@ -14,7 +14,7 @@
         <span @click="currentTab = 'release'" :class="{'is-active': currentTab === 'release'}">我发布的车辆</span>
         <n-divider vertical ></n-divider>
         <span @click="currentTab = 'rent'" :class="{'is-active': currentTab === 'rent'}">我租的车辆</span>
-        <n-button @click="openModal('edit')">发布车辆</n-button>
+        <n-button @click="releaseCar">发布车辆</n-button>
       </div>
       <n-layout :native-scrollbar="false" style="height: calc(100vh - 250px);">
         <div class="dashboard__content__cars-wrapper">
@@ -73,7 +73,7 @@
     <n-modal
       v-model:show="showModal"
       preset="dialog"
-      :title="`确定要${dialogType[modalType]}吗？`"
+      :title="`确定要${modalActionText}吗？`"
       positive-text="确认"
       @positive-click="submitCallback"
       @negative-click="cancelCallback"
@@ -150,6 +150,21 @@ export default {
     ArrowBack
   },
   setup () {
+    const releaseCar = () => {
+      openModal('edit')
+      isReleasingCar.value = true
+    }
+    const isReleasingCar = ref(false)
+    const modalActionText = computed(() => {
+      if (modalType.value !== 'edit') {
+        return dialogType[modalType.value]
+      } else {
+        if (isReleasingCar.value) {
+          return '发布车辆'
+        }
+        return '编辑车辆信息'
+      }
+    })
     const commentPoint = ref(10)
     const accidentData = ref([])
     const accidentPagination = ref({
@@ -266,6 +281,9 @@ export default {
       })
     }
     const openModal = (type) => {
+      if (type === 'edit') {
+        isReleasingCar.value = false
+      }
       modalType.value = type
       showModal.value = true
     }
@@ -282,6 +300,8 @@ export default {
       resetCarInfoFormValue()
     }
     return {
+      releaseCar,
+      modalActionText,
       commentPoint,
       accidentColumns,
       accidentData,
