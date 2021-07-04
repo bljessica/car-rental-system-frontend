@@ -20,7 +20,7 @@ export default function request (url, method, data = {}) {
     }
     // POST请求
     else if (method === 'POST') {
-      promise = axios.post(url, data)
+      promise = axios.post(url, JSON.stringify(data)) // 转成json方便php接受
     } else {
       console.log('暂不支持该请求类型')
       return
