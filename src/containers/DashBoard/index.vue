@@ -133,6 +133,7 @@ import { useMessage } from 'naive-ui'
 import { ArrowBack } from '@vicons/ionicons5'
 import accidentColumns from './accidentColumns.js'
 import commentColumns from './commentColumns.js'
+import store from '/@/store/index.js'
 
 const dialogType = {
   add: '发布车辆',
@@ -154,7 +155,7 @@ export default {
     const modalActionText = computed(() => {
       return dialogType[modalType.value]
     })
-    const currentUsername = computed(() => global.user.username)
+    const currentUsername = computed(() => store.user.username)
     const commentPoint = ref(10)
     const accidentData = ref([])
     const accidentPagination = ref({
@@ -179,7 +180,7 @@ export default {
     const getCars = async () => {
       const res = await global.$api.getCars({
         type: currentTab.value,
-        userId: global.user.userId
+        userId: store.user.userId
       })
       if (res.code === 0) {
         cars.value = res.data
@@ -300,25 +301,25 @@ export default {
         if (modalType.value === 'accident') {
           res = await global.$api.addAccident({
             carId: operatingCar.value.carId,
-            userId: global.user.userId,
+            userId: store.user.userId,
             accidentDesc: modalInputValue.value
           })
         } else if (modalType.value === 'comment') {
           res = await global.$api.addComment({
             carId: operatingCar.value.carId,
-            userId: global.user.userId,
+            userId: store.user.userId,
             commentDesc: modalInputValue.value,
             commentPoint: commentPoint.value
           })
         } else if (modalType.value === 'rent') {
           res = await global.$api.rent({
             carId: operatingCar.value.carId,
-            userId: global.user.userId
+            userId: store.user.userId
           })
         } else if (modalType.value === 'delete') {
           res = await global.$api.deleteCar({
             carId: operatingCar.value.carId,
-            userId: global.user.userId
+            userId: store.user.userId
           })
         }
         if (res.code === 0) {

@@ -88,6 +88,7 @@
 import { ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
+import store from '/@/store/index.js'
 
 export default {
   setup () {
@@ -202,7 +203,7 @@ export default {
           if (!errors) {
             const res = await ins.root.appContext.config.globalProperties.$api.login(loginFormValue.value)
             if (res.code === 0) {
-              ins.root.appContext.config.globalProperties.user = res.data
+              store.user = res.data
               $message.success('登陆成功，1秒后将跳转到首页')
               setTimeout(() => {
                 router.push({ name: 'dashBoard' })
