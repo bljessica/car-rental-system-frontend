@@ -2,7 +2,7 @@
   <div class="login-or-register-container">
     <div class="login-or-register__form-wrapper">
       <n-tabs
-        default-value="login"
+        v-model:value="currentTab"
         show-divider
         style="margin: 0 auto;"
         justify-content="space-evenly"
@@ -70,6 +70,11 @@
               path="email">
               <n-input v-model:value="registerFormValue.email" placeholder="请输入邮箱" />
             </n-form-item>
+            <n-form-item
+              label="身份证号"
+              path="identity">
+              <n-input v-model:value="registerFormValue.identity" placeholder="请输入身份证号" />
+            </n-form-item>
             <n-button @click="handleRegisterValidateClick" type="primary" style="width: 100%;">确定</n-button>
           </n-form>
         </n-tab-pane>
@@ -80,12 +85,13 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 
 export default {
   setup () {
+    const currentTab = ref('login')
     const router = useRouter()
     const $message = useMessage()
     const loginFormRef = ref(null)
@@ -100,9 +106,12 @@ export default {
       passwordConfirm: '',
       realName: '',
       phone: '',
-      email: ''
+      email: '',
+      identity: ''
     })
+    const ins = getCurrentInstance()
     return {
+      currentTab,
       router,
       loginFormRef,
       registerFormRef,
@@ -141,7 +150,6 @@ export default {
         passwordConfirm: {
           required: true,
           validator (rule, value) {
-            console.log(value)
             if (!value) {
               return new Error('请重复输入密码')
             } else if (registerFormValue.value.password !== value) {
@@ -177,27 +185,47 @@ export default {
             return true
           },
           trigger: 'blur'
+        },
+        identity: {
+          required: true,
+          validator (rule, value) {
+            if (value.length !== 18) {
+              return new Error('身份证号格式不正确')
+            }
+            return true
+          },
+          trigger: 'blur'
         }
       },
       handleLoginFormValidateClick (e) {
-        loginFormRef.value.validate((errors) => {
+        loginFormRef.value.validate(async (errors) => {
           if (!errors) {
-            $message.success('登陆成功，1秒后将跳转到首页')
-            setTimeout(() => {
-              router.push({ name: 'dashBoard' })
-            }, 1000);
+            const res = await ins.root.appContext.config.globalProperties.$api.login(loginFormValue.value)
+            if (res.code === 0) {
+              ins.root.appContext.config.globalProperties.user = res.data
+              $message.success('登陆成功，1秒后将跳转到首页')
+              setTimeout(() => {
+                router.push({ name: 'dashBoard' })
+              }, 1000)
+            } else {
+              $message.error(res.msg)
+            }
           } else {
-            console.log(errors)
             $message.error('校验失败，请重新输入')
           }
         })
       },
       handleRegisterValidateClick (e) {
-        registerFormRef.value.validate((errors) => {
+        registerFormRef.value.validate(async (errors) => {
           if (!errors) {
-            $message.success('注册成功')
+            const res = await ins.root.appContext.config.globalProperties.$api.register(registerFormValue.value)
+            if (res.code === 0) {
+              currentTab.value = 'login'
+              $message.success(res.msg)
+            } else {
+              $message.error(res.msg)
+            }
           } else {
-            console.log(errors)
             $message.error('校验失败，请重新输入')
           }
         })

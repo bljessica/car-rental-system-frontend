@@ -3,7 +3,9 @@
     <n-layout class="dashboard__header">
       <h1 style="width: 200px;margin: 0;">汽车租赁系统</h1>
       <div class="dashboard__header__userinfo">
-        <span style="display: inline-block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: 140px;">欢迎你，{{username}}！</span>
+        <span style="display: inline-block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: 140px;">
+          欢迎你，{{currentUsername}}！
+        </span>
         <span @click="$router.push({name: 'loginOrRegister'})" style="cursor: pointer;">登出</span>
       </div>
     </n-layout>
@@ -14,11 +16,12 @@
         <span @click="currentTab = 'release'" :class="{'is-active': currentTab === 'release'}">我发布的车辆</span>
         <n-divider vertical ></n-divider>
         <span @click="currentTab = 'rent'" :class="{'is-active': currentTab === 'rent'}">我租的车辆</span>
-        <n-button @click="releaseCar">发布车辆</n-button>
+        <n-button @click="openModal('add')">发布车辆</n-button>
       </div>
-      <n-layout :native-scrollbar="false" style="height: calc(100vh - 250px);">
+      <n-layout :native-scrollbar="false" style="height: calc(100vh - 180px);">
         <div class="dashboard__content__cars-wrapper">
           <CarCard
+            :displayStatus="currentTab"
             v-for="car in cars"
             :key="car.carId"
             :carId="car.carId"
@@ -28,12 +31,11 @@
             :carPrice="car.carPrice"
             :spotAddress="car.spotAddress"
             :carStatus="car.carStatus"
-            @openModal="openModal"
+            @openModal="openModal($event, car)"
             @selectCar="selectedCar = car"
           />
         </div>
       </n-layout>
-      <n-pagination v-model:page="pageIdx" :page-count="pageCount" style="margin: 20px 0;" />
     </n-layout>
     <!-- 所选车辆信息 -->
     <n-layout
@@ -50,6 +52,7 @@
         返回
       </n-button>
       <CarCard
+        :displayStatus="currentTab"
         :key="selectedCar.carId"
         :carId="selectedCar.carId"
         :ownerName="selectedCar.ownerName"
@@ -58,7 +61,7 @@
         :carPrice="selectedCar.carPrice"
         :spotAddress="selectedCar.spotAddress"
         :carStatus="selectedCar.carStatus"
-        @openModal="openModal"
+        @openModal="openModal($event, selectedCar)"
       />
       <h3>
         事故记录
@@ -82,7 +85,7 @@
     >
       <!-- 编辑车辆信息 -->
       <n-form
-        v-if="modalType === 'edit'"
+        v-if="modalType === 'edit' || modalType === 'add'"
         :rules="carInfoFormRules"
         :label-width="80"
         :model="carInfoFormValue"
@@ -113,23 +116,18 @@
       </n-form>
       <!-- 输入反馈或评价内容 -->
       <n-input
-        v-else-if="modalType === 'feedback' || modalType === 'comment'"
+        v-else-if="modalType === 'accident' || modalType === 'comment'"
         v-model:value="modalInputValue"
         type="textarea"
         placeholder="请输入内容"
       />
-      <n-input-number
-        style="margin-top: 10px;"
-        :min="0"
-        :max="10"
-        v-if="modalType === 'comment'"
-        v-model:value="commentPoint"></n-input-number>
+      <n-rate :count="10"  v-if="modalType === 'comment'" v-model:value="commentPoint" />
     </n-modal>
   </n-layout>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, getCurrentInstance, onMounted, watch } from 'vue'
 import CarCard from '/@/components/CarCard.vue'
 import { useMessage } from 'naive-ui'
 import { ArrowBack } from '@vicons/ionicons5'
@@ -137,9 +135,10 @@ import accidentColumns from './accidentColumns.js'
 import commentColumns from './commentColumns.js'
 
 const dialogType = {
+  add: '发布车辆',
   edit: '编辑车辆信息',
   rent: '租车',
-  feedback: '反馈事故',
+  accident: '反馈事故',
   comment: '评价',
   delete: '删除车辆'
 }
@@ -150,21 +149,12 @@ export default {
     ArrowBack
   },
   setup () {
-    const releaseCar = () => {
-      openModal('edit')
-      isReleasingCar.value = true
-    }
-    const isReleasingCar = ref(false)
+    const ins = getCurrentInstance()
+    const global = ins.root.appContext.config.globalProperties
     const modalActionText = computed(() => {
-      if (modalType.value !== 'edit') {
-        return dialogType[modalType.value]
-      } else {
-        if (isReleasingCar.value) {
-          return '发布车辆'
-        }
-        return '编辑车辆信息'
-      }
+      return dialogType[modalType.value]
     })
+    const currentUsername = computed(() => global.user.username)
     const commentPoint = ref(10)
     const accidentData = ref([])
     const accidentPagination = ref({
@@ -174,26 +164,32 @@ export default {
     const commentPagination = ref({
       pageSize: 10
     })
-    const selectedCar = ref(null)
-    const cars = ref(Array.from({ length: 9 }, () => ({
-      carId: 'test111',
-      ownerName: 'deng',
-      carType: 'FonTeng',
-      carDesc: 'good',
-      carPrice: 2100000,
-      spotAddress: 'here',
-      carStatus: 'done'
-    })))
-    const username = ref('deng')
+    const selectedCar = ref(null) // 点击进入车辆详情的车
+    watch(selectedCar.value, () => {
+      // TODO:获取车辆事故和评价记录
+    })
+    const operatingCar = ref(null) // 进行评价等操作的车
+    const cars = ref([])
     const currentTab = ref('all')
-    const pageIdx = ref(1)
-    const pageSize = ref(9)
-    const pageCount = computed(() => Math.ceil(cars.value.length / pageSize.value))
     const $message = useMessage()
     const showModal = ref(false)
     const modalType = ref('rent')
     const modalInputValue = ref('')
     const carInfoFormRef = ref(null)
+    const getCars = async () => {
+      const res = await global.$api.getCars({
+        type: currentTab.value,
+        userId: global.user.userId
+      })
+      if (res.code === 0) {
+        cars.value = res.data
+      } else {
+        $message.error(res.msg)
+      }
+    }
+    onMounted(async () => {
+      await getCars()
+    })
     const carInfoFormRules = ref({
       carId: [
         {
@@ -267,31 +263,73 @@ export default {
       }
     }
     const handleCarInfoFormValidateClick = (e) => {
-      return carInfoFormRef.value.validate((errors) => {
+      return carInfoFormRef.value.validate(async (errors) => {
         if (!errors) {
-          $message.success('车辆信息修改成功')
-          showModal.value = false
-          resetCarInfoFormValue()
-          return true
+          let res = null
+          if (modalType.value === 'edit') {
+            res = await global.$api.editCar(carInfoFormValue.value)
+          } else { // 发布车辆
+            res = await global.$api.releaseCar(carInfoFormValue.value)
+          }
+          if (res.code === 0) {
+            $message.success(res.msg)
+            showModal.value = false
+            resetCarInfoFormValue()
+            await getCars()
+            return true
+          } else {
+            $message.error(res.msg)
+            return false
+          }
         } else {
-          console.log(errors)
           $message.error('校验失败，请重新输入')
           return false
         }
       })
     }
-    const openModal = (type) => {
-      if (type === 'edit') {
-        isReleasingCar.value = false
-      }
+    const openModal = (type, car) => {
+      car && (operatingCar.value = car)
       modalType.value = type
       showModal.value = true
     }
-    const submitCallback = () => {
-      if (modalType.value !== 'edit') {
-        $message.success(`${dialogType[modalType.value]}成功！`)
-      } else {
+    const submitCallback = async () => {
+      if (modalType.value === 'edit' || modalType.value === 'add') { // 车辆信息修改或发布车辆
         return handleCarInfoFormValidateClick()
+      } else {
+        let res = null
+        if (modalType.value === 'accident') {
+          res = await global.$api.addAccident({
+            carId: operatingCar.value.carId,
+            userId: global.user.userId,
+            accidentDesc: modalInputValue.value
+          })
+        } else if (modalType.value === 'comment') {
+          res = await global.$api.addComment({
+            carId: operatingCar.value.carId,
+            userId: global.user.userId,
+            commentDesc: modalInputValue.value,
+            commentPoint: commentPoint.value
+          })
+        } else if (modalType.value === 'rent') {
+          res = await global.$api.rent({
+            carId: operatingCar.value.carId,
+            userId: global.user.userId
+          })
+        } else if (modalType.value === 'delete') {
+          res = await global.$api.deleteCar({
+            carId: operatingCar.value.carId,
+            userId: global.user.userId
+          })
+        }
+        if (res.code === 0) {
+          $message.success(res.msg)
+          if (modalType.value === 'delete') {
+            await getCars()
+          }
+        } else {
+          $message.error(res.msg)
+          return false
+        }
       }
     }
     const cancelCallback = () => {
@@ -300,7 +338,7 @@ export default {
       resetCarInfoFormValue()
     }
     return {
-      releaseCar,
+      currentUsername,
       modalActionText,
       commentPoint,
       accidentColumns,
@@ -311,11 +349,7 @@ export default {
       commentPagination,
       selectedCar,
       cars,
-      username,
       currentTab,
-      pageIdx,
-      pageCount,
-      dialogType,
       showModal,
       modalType,
       modalInputValue,
@@ -373,8 +407,5 @@ export default {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-}
-:deep(.n-pagination) {
-  justify-content: center;
 }
 </style>

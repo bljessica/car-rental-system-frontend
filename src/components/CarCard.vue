@@ -12,7 +12,7 @@
           <n-tag type="success">{{carStatus}}</n-tag>
         </div>
         <div class="car-card___header__actions">
-          <n-popover trigger="hover">
+          <n-popover trigger="hover" v-if="displayStatus === 'release'">
             <template #trigger>
               <n-icon size="24">
                 <BrushOutline @click="$emit('openModal', 'edit')" />
@@ -20,7 +20,7 @@
             </template>
             <span>编辑车辆信息</span>
           </n-popover>
-          <n-popover trigger="hover">
+          <n-popover trigger="hover" v-if="displayStatus === 'all'">
             <template #trigger>
               <n-icon size="24">
                 <ArchiveOutline @click="$emit('openModal', 'rent')" />
@@ -28,15 +28,15 @@
             </template>
             <span>租车</span>
           </n-popover>
-          <n-popover trigger="hover">
+          <n-popover trigger="hover" v-if="displayStatus === 'rent'">
             <template #trigger>
               <n-icon size="24">
-                <AlertCircleOutline @click="$emit('openModal', 'feedback')" />
+                <AlertCircleOutline @click="$emit('openModal', 'accident')" />
               </n-icon>
             </template>
             <span>事故反馈</span>
           </n-popover>
-          <n-popover trigger="hover">
+          <n-popover trigger="hover" v-if="displayStatus === 'rent'">
             <template #trigger>
               <n-icon size="24">
                 <CreateOutline @click="$emit('openModal', 'comment')" />
@@ -44,7 +44,7 @@
             </template>
             <span>使用评价</span>
           </n-popover>
-          <n-popover trigger="hover">
+          <n-popover trigger="hover" v-if="displayStatus === 'release'">
             <template #trigger>
               <n-icon size="24">
                 <TrashOutline @click="$emit('openModal', 'delete')" />
@@ -79,6 +79,11 @@ export default {
     TrashOutline
   },
   props: {
+    displayStatus: {
+      type: String,
+      default: 'all',
+      validator: (val) => ['all', 'release', 'rent'].includes(val)
+    },
     carId: {
       type: String,
       default: 'test car'
